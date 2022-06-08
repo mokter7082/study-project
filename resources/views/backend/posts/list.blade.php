@@ -1,0 +1,106 @@
+@extends('layouts.app-backend')
+@section('title', 'Pages Management')
+@section('content')
+<div class="m-portlet m-portlet--mobile">
+    <div class="m-portlet__head">
+        <div class="m-portlet__head-caption">
+            <div class="m-portlet__head-title">
+                <h3 class="m-portlet__head-text">All Posts</h3>
+            </div>
+        </div>
+
+        <div class="m-portlet__head-tools">
+            @can('book-create')
+            <ul class="m-portlet__nav">
+                <li class="m-portlet__nav-item">
+                    <a href="{{ route('posts.create') }}" class="btn btn-primary m-btn m-btn--pill m-btn--custom m-btn--icon m-btn--air">
+                        <span>
+                            <i class="la la-plus"></i>
+                            <span>Create New</span>
+                        </span>
+                    </a>
+                </li>
+            </ul>
+            @endcan
+        </div>
+    </div>
+
+    <div class="m-portlet__body"> 
+        <table class="table table-striped- table-bordered table-hover table-checkable" id="datatable">
+            <thead>
+                <tr> 
+                    <th width="50">SL</th> 
+                    <th>Title</th>       
+                    <th width="70">Image</th>                    
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody> 
+
+                @foreach($posts as $key => $post) 
+                    <tr> 
+                        <td tabindex="0">{{ ++$key }}</td> 
+                        <td tabindex="2">{!! $post->title??'' !!}</td>
+                        <td>
+                            @if(!empty($post->picture))
+                                <img src="{{isset($post) && $post->picture !=''? $post->picture: URL::to('img/default.jpg')}}" class="m--marginless" alt="photo"> 
+                            @endif
+                        </td>                  
+                        <td><label class="m--font-bold m--font-primary">{{ $post->status??''}}</label></td>
+                        <td nowrap="" align="center">
+                            @if((auth()->user()->can('post-delete') || auth()->user()->can('page-edit')))
+                            <span class="dropdown">
+                                <a href="#" class="btn m-btn m-btn--hover-brand m-btn--icon m-btn--icon-only m-btn--pill" data-toggle="dropdown" aria-expanded="true"> <i class="la la-ellipsis-h"></i></a>
+                                <div class="dropdown-menu dropdown-menu-right">
+                                    
+                                    @can('post-edit')
+                                        <a class="dropdown-item" href="{{ route('posts.edit',$post->id) }}"><i class="la la-edit"></i> Edit </a>
+                                    @endcan
+                                    
+                                    @can('post-delete')
+                                        {{-- <a class="dropdown-item delItem" href="#{{route('posts.destroy', $post->id)}}" data-delform="delete-form{{ $post->id }}"><i class="la la-trash"></i>Löschen</a>
+                                    {!! Form::open(['method' => 'DELETE','route' => ['pages.destroy', $post->id],'style'=>'display:inline', 'id'=>'delete-form'.$post->id]) !!}
+                                    {!! Form::close() !!} --}}
+
+                                    <a class="dropdown-item" href="#{{ route('posts.destroy', $post->id) }}"
+                                        onclick="event.preventDefault(); document.getElementById('delete-form{{ $post->id }}').submit();
+                                    "><i class="la la-trash"></i>Delete</a>
+                                    {!! Form::open(['method' => 'DELETE','route' => ['posts.destroy', $post->id],'style'=>'display:inline', 'id'=>'delete-form'.$post->id]) !!}
+                                    {!! Form::close() !!}
+                                    @endcan
+
+                                </div>
+                            </span>
+                            @endif
+                            
+                            {{-- <a href="{{ route('books.show',$book->id) }}" class="m-portlet__nav-link btn m-btn m-btn--hover-brand m-btn--icon m-btn--icon-only m-btn--pill" data-toggle="m-tooltip" title="View Details" data-html="true" data-placement="left"><i class="la la-external-link"></i></a> --}}                    
+                        </td>
+                    </tr> 
+                @endforeach
+            </tbody>
+        </table> 
+    </div> 
+</div>
+@endsection
+
+@push('scripts')
+<script>
+    $("#datatable").DataTable({
+        responsive: !0,
+        paging: !0,
+        "ordering": false, 
+        "pageLength": 100
+    });
+ 
+    $('.delItem').click(function(e) {
+        e.preventDefault; 
+        var formId = $(this).data('delform'); 
+        swalConfirm().then((result) => {
+          if (result.value) { 
+            $('#'+formId).submit();
+          }
+        })
+    })
+</script>
+@endpush
